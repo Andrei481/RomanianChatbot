@@ -7,7 +7,7 @@ const User = require("./models/user");
 const app = express();
 const serverPort = 3000;
 require('dotenv').config();
-app.use(express.json());
+app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
 
 
@@ -22,28 +22,35 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING)
     console.log("Error Connecting to MongoDB"); 
 });
 
+const saltRounds = 10;
+
 app.post("/register", async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
 
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
+
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(401).json({ message: "Email already registered" });
+            return res.status(409).json({ message: "Email already registered" });
         }
 
         const existingUserByUsername = await User.findOne({ username });
         if (existingUserByUsername) {
-            return res.status(402).json({ message: "Username already taken" });
+            return res.status(409).json({ message: "Username already taken" });
         }
 
-        const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         const newUser = new User({ name, username, email, password: hashedPassword });
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationTokenHash = await bcrypt.hash(verificationToken, saltRounds)
 
-        newUser.verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        newUser.verificationToken = verificationTokenHash;
 
         const emailTemplate = require('./email_utils/registration_message');
-        const { subject, text } = emailTemplate(name, newUser.verificationToken);
+        const { subject, text } = emailTemplate(name, verificationToken);
 
         await sendEmail(email, subject, text);
 
@@ -56,15 +63,22 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.post("/verify", async (req, res) => {
+app.patch("/verify", async (req, res) => {
     try {
-        const { identifier, userCode } = req.body;
+        const { identifier, userToken } = req.body;
 
+        if (!identifier || !userToken) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
 
-        if (user.verificationToken !== userCode) {
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+        const isTokenValid = await bcrypt.compare(userToken.toString(), user.verificationToken);
+        if (!isTokenValid) {
             return res.status(403).json({ message: "Invalid token" });
         }
 
@@ -83,6 +97,9 @@ app.post("/login", async (req, res) => {
     try {
         const { identifier, password } = req.body;
 
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
@@ -96,12 +113,143 @@ app.post("/login", async (req, res) => {
             return res.status(405).json({ message: "Invalid password" });
         }
 
-        // if (!user.verified) {
-        //     return res.status(406).json({ message: "Email not verified" });
-        // }
+        if (!user.verified) {
+            return res.status(406).json({ message: "Email not verified" });
+        }
 
         res.status(200).json({ message: "Login successful", userId: user._id });
     } catch (error) {
         res.status(500).json({ message: "Login failed" });
+    }
+});
+
+app.post("/forgotpass", async (req, res) => {
+    try {
+        const { identifier } = req.body;
+
+        if (!identifier) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
+
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+
+        const passwordResetToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const passwordResetTokenHash = await bcrypt.hash(passwordResetToken, saltRounds);
+        user.passwordResetToken = passwordResetTokenHash;
+
+        const emailTemplate = require('./email_utils/reset_password_message');
+        const { subject, text } = emailTemplate(user.name, passwordResetToken);
+
+        await sendEmail(user.email, subject, text);
+
+        await user.save();
+
+        res.status(200).json({ message: "Email sent" });
+    } catch (error) {
+        res.status(500).json({ message: "Error sending mail" });
+    }
+});
+
+app.patch("/resetpass", async (req, res) => {
+    try {
+        const { identifier, resetToken, newPassword } = req.body;
+
+        if (!identifier || !resetToken || !newPassword) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
+
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+
+        const isValidToken = await bcrypt.compare(resetToken.toString(), user.passwordResetToken);
+        if (!isValidToken) {
+            return res.status(403).json({ message: "Invalid token" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.passwordResetToken = undefined;
+
+        await user.save();
+
+        res.status(200).json({ message: "Password changed successfully", userId: user._id });
+    } catch (error) {
+        res.status(500).json({ message: "Error changing password" });
+    }
+});
+
+app.get('/user/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userData = {
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            joinedDate: user.joinedDate,
+            profilePicture: user.profilePicture ? user.profilePicture.toString('base64') : undefined
+        };
+
+        res.status(200).json(userData);
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.delete("/user/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "User deleted successfully", deletedUser });
+    } catch (error) {
+        console.error("Error deleting user", error);
+        res.status(500).json({ message: "Error deleting user" });
+    }
+});
+
+app.patch("/user/:userId/profilePicture", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const { profilePicture } = req.body;
+
+        if(!profilePicture) {
+            return res.status(400).json({ message: 'Invalid request data' });
+        }
+        const user = await User.findById(userId);
+        if(!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const imageBuffer = Buffer.from(profilePicture, 'base64');
+
+        user.profilePicture = imageBuffer;
+        await user.save();
+
+        res.status(200).json({ message: "Profile picture saved successfully" });
+    } catch(error) {
+        console.error("Error updating profile picture: ", error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });

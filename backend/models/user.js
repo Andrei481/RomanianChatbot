@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   verificationToken: String,
+  passwordResetToken: String
 });
 
 const User = mongoose.model("User", userSchema);
