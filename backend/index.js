@@ -96,9 +96,9 @@ app.post("/login", async (req, res) => {
             return res.status(405).json({ message: "Invalid password" });
         }
 
-        // if (!user.verified) {
-        //     return res.status(406).json({ message: "Email not verified" });
-        // }
+        if (!user.verified) {
+            return res.status(406).json({ message: "Email not verified" });
+        }
 
         res.status(200).json({ message: "Login successful", userId: user._id });
     } catch (error) {
