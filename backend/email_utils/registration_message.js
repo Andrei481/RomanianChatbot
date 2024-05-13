@@ -9,7 +9,7 @@ module.exports = (name, verificationToken) => {
     
     Verification Code: ${verificationToken}
     
-    Please enter this code in the app to verify your account and gain access to all of our features. If you did not request this code or have any questions, please contact our support team immediately.
+    Please enter this code in the app to verify your account and gain access to all of our features. If you did not request this action, please ignore this mail.
     
     
     Best regards,

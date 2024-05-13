@@ -22,28 +22,31 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING)
     console.log("Error Connecting to MongoDB"); 
 });
 
+const saltRounds = 10;
+
 app.post("/register", async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(401).json({ message: "Email already registered" });
+            return res.status(409).json({ message: "Email already registered" });
         }
 
         const existingUserByUsername = await User.findOne({ username });
         if (existingUserByUsername) {
-            return res.status(402).json({ message: "Username already taken" });
+            return res.status(409).json({ message: "Username already taken" });
         }
 
-        const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         const newUser = new User({ name, username, email, password: hashedPassword });
+        const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationTokenHash = await bcrypt.hash(verificationToken, saltRounds)
 
-        newUser.verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+        newUser.verificationToken = verificationTokenHash;
 
         const emailTemplate = require('./email_utils/registration_message');
-        const { subject, text } = emailTemplate(name, newUser.verificationToken);
+        const { subject, text } = emailTemplate(name, verificationToken);
 
         await sendEmail(email, subject, text);
 
@@ -56,15 +59,19 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.post("/verify", async (req, res) => {
+app.patch("/verify", async (req, res) => {
     try {
-        const { identifier, userCode } = req.body;
+        const { identifier, userToken } = req.body;
 
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
 
-        if (user.verificationToken !== userCode) {
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+        const isTokenValid = await bcrypt.compare(userToken.toString(), user.verificationToken);
+        if (!isTokenValid) {
             return res.status(403).json({ message: "Invalid token" });
         }
 
@@ -103,5 +110,79 @@ app.post("/login", async (req, res) => {
         res.status(200).json({ message: "Login successful", userId: user._id });
     } catch (error) {
         res.status(500).json({ message: "Login failed" });
+    }
+});
+
+app.post("/forgotpass", async (req, res) => {
+    try {
+        const { identifier } = req.body;
+
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+
+        const passwordResetToken = Math.floor(100000 + Math.random() * 900000).toString();
+        const passwordResetTokenHash = await bcrypt.hash(passwordResetToken, saltRounds);
+        user.passwordResetToken = passwordResetTokenHash;
+
+        const emailTemplate = require('./email_utils/reset_password_message');
+        const { subject, text } = emailTemplate(user.name, passwordResetToken);
+
+        await sendEmail(user.email, subject, text);
+
+        await user.save();
+
+        res.status(200).json({ message: "Email sent" });
+    } catch (error) {
+        res.status(500).json({ message: "Error sending mail" });
+    }
+});
+
+app.patch("/resetpass", async (req, res) => {
+    try {
+        const { identifier, resetToken, newPassword } = req.body;
+
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Invalid email or username" });
+        }
+
+        const isValidToken = await bcrypt.compare(resetToken.toString(), user.passwordResetToken);
+        if (!isValidToken) {
+            return res.status(403).json({ message: "Invalid token" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.passwordResetToken = undefined;
+
+        await user.save();
+
+        res.status(200).json({ message: "Password changed successfully", userId: user._id });
+    } catch (error) {
+        res.status(500).json({ message: "Error changing password" });
+    }
+});
+
+app.delete("/user/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "User deleted successfully", deletedUser });
+    } catch (error) {
+        console.error("Error deleting user", error);
+        res.status(500).json({ message: "Error deleting user" });
     }
 });
