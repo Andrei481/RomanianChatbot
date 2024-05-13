@@ -7,7 +7,7 @@ const User = require("./models/user");
 const app = express();
 const serverPort = 3000;
 require('dotenv').config();
-app.use(express.json());
+app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
 
 
@@ -27,6 +27,10 @@ const saltRounds = 10;
 app.post("/register", async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
+
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -63,6 +67,9 @@ app.patch("/verify", async (req, res) => {
     try {
         const { identifier, userToken } = req.body;
 
+        if (!identifier || !userToken) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
@@ -90,6 +97,9 @@ app.post("/login", async (req, res) => {
     try {
         const { identifier, password } = req.body;
 
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
@@ -116,6 +126,10 @@ app.post("/login", async (req, res) => {
 app.post("/forgotpass", async (req, res) => {
     try {
         const { identifier } = req.body;
+
+        if (!identifier) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
 
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
@@ -146,6 +160,10 @@ app.patch("/resetpass", async (req, res) => {
     try {
         const { identifier, resetToken, newPassword } = req.body;
 
+        if (!identifier || !resetToken || !newPassword) {
+            return res.status(400).json({ message: "Invalid request data" });
+        }
+
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });
@@ -170,6 +188,31 @@ app.patch("/resetpass", async (req, res) => {
     }
 });
 
+app.get('/user/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userData = {
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            joinedDate: user.joinedDate,
+            profilePicture: user.profilePicture ? user.profilePicture.toString('base64') : undefined
+        };
+
+        res.status(200).json(userData);
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 app.delete("/user/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -184,5 +227,29 @@ app.delete("/user/:userId", async (req, res) => {
     } catch (error) {
         console.error("Error deleting user", error);
         res.status(500).json({ message: "Error deleting user" });
+    }
+});
+
+app.patch("/user/:userId/profilePicture", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const { profilePicture } = req.body;
+
+        if(!profilePicture) {
+            return res.status(400).json({ message: 'Invalid request data' });
+        }
+        const user = await User.findById(userId);
+        if(!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const imageBuffer = Buffer.from(profilePicture, 'base64');
+
+        user.profilePicture = imageBuffer;
+        await user.save();
+
+        res.status(200).json({ message: "Profile picture saved successfully" });
+    } catch(error) {
+        console.error("Error updating profile picture: ", error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
