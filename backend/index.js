@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const User = require("./models/user");
 
 const app = express();
-const serverPort = 3000;
+const serverPort = 3001; // using port 3001 because 3000 is busy on the Google VM
 require('dotenv').config();
 app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
