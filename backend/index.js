@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const User = require("./models/user");
+const Conversation = require("./models/conversation")
 
 const app = express();
 const serverPort = 3000;
@@ -276,6 +277,103 @@ app.post("/inference", async (req, res) => {
         res.json({ generatedText });
     } catch (error) {
         console.error("Error at inference: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post("/user/:userId/newConversation", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { messages } = req.body;
+        if(!messages) {
+            return res.status(400).json({ message: 'Invalid request data' });
+        }
+        
+        const newConversation = new Conversation({
+            userId: userId,
+            messages: messages
+        });
+
+        await newConversation.save();
+
+        res.status(200).json({ message: "Conversation created successfully", conversation: newConversation });
+    } catch(error) {
+        console.error("Error creating conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.patch("/conversation/:conversationId", async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const { messages } = req.body;
+
+        if (!Array.isArray(messages)) {
+            return res.status(400).json({ message: 'Invalid messages format: must be an array' });
+        }
+
+        const updateConversation = await Conversation.findById(conversationId);
+        
+        if (!updateConversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        for (const message of messages) {
+            updateConversation.messages.push(message);
+        }
+        
+        await updateConversation.save();
+
+        res.status(200).json({ message: "Messages added successfully", conversation: updateConversation });
+    } catch(error) {
+        console.error("Error adding messages to conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get("/conversation/:conversationId", async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        
+        const conversation = await Conversation.findById(conversationId);
+        
+        if (!conversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        res.status(200).json({ message: "Conversation retrieved successfully", conversation });
+    } catch(error) {
+        console.error("Error retrieving conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get("/user/:userId/conversations", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const conversations = await Conversation.find({ userId });
+
+        res.status(200).json({ message: "Conversations retrieved successfully", conversations });
+    } catch(error) {
+        console.error("Error retrieving conversations: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.delete("/conversation/:conversationId", async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+
+        const deletedConversation = await Conversation.findByIdAndDelete(conversationId);
+        
+        if (!deletedConversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        res.status(200).json({ message: 'Conversation deleted successfully', deletedConversation });
+    } catch (error) {
+        console.error("Error deleting conversation:", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
