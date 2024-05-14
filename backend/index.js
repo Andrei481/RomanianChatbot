@@ -9,6 +9,7 @@ const serverPort = 3000;
 require('dotenv').config();
 app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
+const axios = require('axios');
 
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING)
@@ -250,6 +251,31 @@ app.patch("/user/:userId/profilePicture", async (req, res) => {
         res.status(200).json({ message: "Profile picture saved successfully" });
     } catch(error) {
         console.error("Error updating profile picture: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post("/inference", async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ message: 'Invalid request data' });
+        }
+
+        const requestBody = {
+            prompt: prompt,
+            n: 1,
+            temperature: 0.95,
+            max_tokens: 1024
+        };
+
+        const response = await axios.post('http://10.198.110.23:8000/generate', requestBody);
+
+        const generatedText = response.data;
+
+        res.json({ generatedText });
+    } catch (error) {
+        console.error("Error at inference: ", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
