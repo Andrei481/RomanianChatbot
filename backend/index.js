@@ -10,7 +10,8 @@ const serverPort = 3000;
 require('dotenv').config();
 app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
-const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const verifyToken = require('./middleware/jwtAuth')
 
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING)
@@ -25,6 +26,10 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING)
 });
 
 const saltRounds = 10;
+
+const generateToken = (userId) => {
+    return jwt.sign({ userId }, process.env.SECRET_KEY, { expiresIn: '1h' });
+};
 
 app.post("/register", async (req, res) => {
     try {
@@ -65,7 +70,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.patch("/verify", async (req, res) => {
+app.post("/verify", async (req, res) => {
     try {
         const { identifier, userToken } = req.body;
 
@@ -118,8 +123,9 @@ app.post("/login", async (req, res) => {
         if (!user.verified) {
             return res.status(406).json({ message: "Email not verified" });
         }
+        const token = generateToken(user._id);
 
-        res.status(200).json({ message: "Login successful", userId: user._id });
+        res.status(200).json({ message: "Login successful", userId: user._id, token });
     } catch (error) {
         res.status(500).json({ message: "Login failed" });
     }
@@ -158,7 +164,7 @@ app.post("/forgotpass", async (req, res) => {
     }
 });
 
-app.patch("/resetpass", async (req, res) => {
+app.post("/resetpass", async (req, res) => {
     try {
         const { identifier, resetToken, newPassword } = req.body;
 
@@ -190,7 +196,7 @@ app.patch("/resetpass", async (req, res) => {
     }
 });
 
-app.get('/user/:userId', async (req, res) => {
+app.get('/user/:userId', verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -215,7 +221,7 @@ app.get('/user/:userId', async (req, res) => {
     }
 });
 
-app.delete("/user/:userId", async (req, res) => {
+app.delete("/user/:userId", verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -232,7 +238,7 @@ app.delete("/user/:userId", async (req, res) => {
     }
 });
 
-app.patch("/user/:userId/profilePicture", async (req, res) => {
+app.post("/user/:userId/profilePicture", verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
         const { profilePicture } = req.body;
@@ -256,32 +262,32 @@ app.patch("/user/:userId/profilePicture", async (req, res) => {
     }
 });
 
-app.post("/inference", async (req, res) => {
-    try {
-        const { prompt } = req.body;
-        if (!prompt) {
-            return res.status(400).json({ message: 'Invalid request data' });
-        }
+// app.post("/inference", async (req, res) => {
+//     try {
+//         const { prompt } = req.body;
+//         if (!prompt) {
+//             return res.status(400).json({ message: 'Invalid request data' });
+//         }
 
-        const requestBody = {
-            prompt: prompt,
-            n: 1,
-            temperature: 0.95,
-            max_tokens: 1024
-        };
+//         const requestBody = {
+//             prompt: prompt,
+//             n: 1,
+//             temperature: 0.95,
+//             max_tokens: 1024
+//         };
 
-        const response = await axios.post('http://10.198.110.23:8000/generate', requestBody);
+//         const response = await axios.post('http://10.198.110.23:8000/generate', requestBody);
 
-        const generatedText = response.data;
+//         const generatedText = response.data;
 
-        res.json({ generatedText });
-    } catch (error) {
-        console.error("Error at inference: ", error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
+//         res.json({ generatedText });
+//     } catch (error) {
+//         console.error("Error at inference: ", error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
 
-app.post("/user/:userId/newConversation", async (req, res) => {
+app.post("/user/:userId/newConversation", verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
         const { messages } = req.body;
@@ -303,7 +309,7 @@ app.post("/user/:userId/newConversation", async (req, res) => {
     }
 });
 
-app.patch("/conversation/:conversationId", async (req, res) => {
+app.post("/conversation/:conversationId", verifyToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
         const { messages } = req.body;
@@ -331,7 +337,7 @@ app.patch("/conversation/:conversationId", async (req, res) => {
     }
 });
 
-app.get("/conversation/:conversationId", async (req, res) => {
+app.get("/conversation/:conversationId", verifyToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
         
@@ -348,7 +354,7 @@ app.get("/conversation/:conversationId", async (req, res) => {
     }
 });
 
-app.get("/user/:userId/conversations", async (req, res) => {
+app.get("/user/:userId/conversations", verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
 
@@ -361,7 +367,7 @@ app.get("/user/:userId/conversations", async (req, res) => {
     }
 });
 
-app.delete("/conversation/:conversationId", async (req, res) => {
+app.delete("/conversation/:conversationId", verifyToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
 
