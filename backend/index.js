@@ -3,12 +3,15 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const User = require("./models/user");
+const Conversation = require("./models/conversation")
 
 const app = express();
 const serverPort = 3000;
 require('dotenv').config();
 app.use(express.json({limit: '20mb'}));
 const sendEmail = require('./email_utils/email_sender');
+const jwt = require('jsonwebtoken');
+const verifyToken = require('./middleware/jwtAuth')
 
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING)
@@ -23,6 +26,10 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING)
 });
 
 const saltRounds = 10;
+
+const generateToken = (userId) => {
+    return jwt.sign({ userId }, process.env.SECRET_KEY, { expiresIn: '1h' });
+};
 
 app.post("/register", async (req, res) => {
     try {
@@ -63,7 +70,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.patch("/verify", async (req, res) => {
+app.post("/verify", async (req, res) => {
     try {
         const { identifier, userToken } = req.body;
 
@@ -116,8 +123,9 @@ app.post("/login", async (req, res) => {
         if (!user.verified) {
             return res.status(406).json({ message: "Email not verified" });
         }
+        const token = generateToken(user._id);
 
-        res.status(200).json({ message: "Login successful", userId: user._id });
+        res.status(200).json({ message: "Login successful", userId: user._id, token });
     } catch (error) {
         res.status(500).json({ message: "Login failed" });
     }
@@ -156,7 +164,7 @@ app.post("/forgotpass", async (req, res) => {
     }
 });
 
-app.patch("/resetpass", async (req, res) => {
+app.post("/resetpass", async (req, res) => {
     try {
         const { identifier, resetToken, newPassword } = req.body;
 
@@ -188,7 +196,7 @@ app.patch("/resetpass", async (req, res) => {
     }
 });
 
-app.get('/user/:userId', async (req, res) => {
+app.get('/user/:userId', verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -213,7 +221,7 @@ app.get('/user/:userId', async (req, res) => {
     }
 });
 
-app.delete("/user/:userId", async (req, res) => {
+app.delete("/user/:userId", verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -230,7 +238,7 @@ app.delete("/user/:userId", async (req, res) => {
     }
 });
 
-app.patch("/user/:userId/profilePicture", async (req, res) => {
+app.post("/user/:userId/profilePicture", verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
         const { profilePicture } = req.body;
@@ -250,6 +258,128 @@ app.patch("/user/:userId/profilePicture", async (req, res) => {
         res.status(200).json({ message: "Profile picture saved successfully" });
     } catch(error) {
         console.error("Error updating profile picture: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// app.post("/inference", async (req, res) => {
+//     try {
+//         const { prompt } = req.body;
+//         if (!prompt) {
+//             return res.status(400).json({ message: 'Invalid request data' });
+//         }
+
+//         const requestBody = {
+//             prompt: prompt,
+//             n: 1,
+//             temperature: 0.95,
+//             max_tokens: 1024
+//         };
+
+//         const response = await axios.post('http://10.198.110.23:8000/generate', requestBody);
+
+//         const generatedText = response.data;
+
+//         res.json({ generatedText });
+//     } catch (error) {
+//         console.error("Error at inference: ", error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
+
+app.post("/user/:userId/newConversation", verifyToken, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { messages } = req.body;
+        if(!messages) {
+            return res.status(400).json({ message: 'Invalid request data' });
+        }
+        
+        const newConversation = new Conversation({
+            userId: userId,
+            messages: messages
+        });
+
+        await newConversation.save();
+
+        res.status(200).json({ message: "Conversation created successfully", conversation: newConversation });
+    } catch(error) {
+        console.error("Error creating conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post("/conversation/:conversationId", verifyToken, async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const { messages } = req.body;
+
+        if (!Array.isArray(messages)) {
+            return res.status(400).json({ message: 'Invalid messages format: must be an array' });
+        }
+
+        const updateConversation = await Conversation.findById(conversationId);
+        
+        if (!updateConversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        for (const message of messages) {
+            updateConversation.messages.push(message);
+        }
+        
+        await updateConversation.save();
+
+        res.status(200).json({ message: "Messages added successfully", conversation: updateConversation });
+    } catch(error) {
+        console.error("Error adding messages to conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get("/conversation/:conversationId", verifyToken, async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        
+        const conversation = await Conversation.findById(conversationId);
+        
+        if (!conversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        res.status(200).json({ message: "Conversation retrieved successfully", conversation });
+    } catch(error) {
+        console.error("Error retrieving conversation: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get("/user/:userId/conversations", verifyToken, async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const conversations = await Conversation.find({ userId });
+
+        res.status(200).json({ message: "Conversations retrieved successfully", conversations });
+    } catch(error) {
+        console.error("Error retrieving conversations: ", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.delete("/conversation/:conversationId", verifyToken, async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+
+        const deletedConversation = await Conversation.findByIdAndDelete(conversationId);
+        
+        if (!deletedConversation) {
+            return res.status(404).json({ message: 'Conversation not found' });
+        }
+
+        res.status(200).json({ message: 'Conversation deleted successfully', deletedConversation });
+    } catch (error) {
+        console.error("Error deleting conversation:", error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
