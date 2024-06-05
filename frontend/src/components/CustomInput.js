@@ -23,12 +23,15 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
         width: '100%',
+        height: '10%',
         borderColor: 'white',
         borderWidth: 5,
         borderRadius: 10,
+        allignSelf: 'center',
+        
 
         paddingHorizontal: 10,
-        marginVertical: 5,
+        marginVertical: 10,
     },
     input: {},
 });

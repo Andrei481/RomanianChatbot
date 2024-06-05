@@ -54,10 +54,10 @@ const styles = StyleSheet.create({
         color: 'white'
     },
     text_SECONDARY: {
-        color: 'black'
+        color: 'white'
     },
     text_TERTIARY: {
-        color: 'black',
+        color: 'white',
         textDecorationLine: 'underline',
     }
 });

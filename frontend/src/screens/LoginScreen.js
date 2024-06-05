@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Image, Animated } from 'react-native';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
+import styles from '../components/LoginScreenStyle';
+
+const gifDuration = 50000;
 
 const LoginScreen = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigation = useNavigation();
+    
 
     const onForgotPasswordPressed = () => {
         navigation.navigate('Forgot Password');
@@ -23,8 +27,18 @@ const LoginScreen = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <ScrollView>
-                <View>
+            <ScrollView contentContainerStyle={styles.container}>
+                <Image
+                        source={require('../pictures/logo.jpg.png')} // Adjust the path to your image file
+                        style={styles.image}
+                        resizeMode="contain"
+                    />
+                <Image
+                        source={require('../pictures/messagif.gif')} // Adjust the path to your image file
+                        style={styles.image}
+                        resizeMode="contain"
+                    />
+                <View style={styles.innerContainer}>
                     <CustomInput
                         placeholder="Enter Username or Email"
                         value={username}
@@ -52,15 +66,13 @@ const LoginScreen = () => {
                             />
                         </View>
                 </View>
-                <View>
-                    <Text>Don't have an account?</Text>
+                    <Text style={styles.footerText}>Don't have an account?</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }} >
                             <CustomButton
                                 text='Sign Up!' onPress={onSignUpPressed}
                                 type='TERTIARY'
                             />
                         </View>
-                </View>
             </ScrollView>
         </TouchableWithoutFeedback>
         
