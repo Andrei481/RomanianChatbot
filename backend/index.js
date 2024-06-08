@@ -231,6 +231,8 @@ app.delete("/user/:userId", verifyToken, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        await Conversation.deleteMany({ userId }); // delete all their conversations
+
         res.status(200).json({ message: "User deleted successfully", deletedUser });
     } catch (error) {
         console.error("Error deleting user", error);
@@ -238,7 +240,7 @@ app.delete("/user/:userId", verifyToken, async (req, res) => {
     }
 });
 
-app.post("/user/:userId/profilePicture", verifyToken, async (req, res) => {
+app.put("/user/:userId/profilePicture", verifyToken, async (req, res) => {
     try {
         const userId = req.params.userId;
         const { profilePicture } = req.body;
@@ -309,7 +311,7 @@ app.post("/user/:userId/newConversation", verifyToken, async (req, res) => {
     }
 });
 
-app.post("/conversation/:conversationId", verifyToken, async (req, res) => {
+app.put("/conversation/:conversationId", verifyToken, async (req, res) => {
     try {
         const { conversationId } = req.params;
         const { messages } = req.body;
