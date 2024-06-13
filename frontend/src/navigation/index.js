@@ -4,6 +4,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
+import SignUpScreen from '../screens/SignupScreen';
+import EmailVerificationScreen from '../screens/EmailVerificationScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
 const Stack = createStackNavigator();
 
@@ -13,11 +16,9 @@ const Navigation = () => {
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name='Login' component={LoginScreen} />
                 <Stack.Screen name='HomeScreen' component={HomeScreen} />
-                {/* <Stack.Screen name='SignUp' component={SignupScreen} />
-                <Stack.Screen name='Forgot Password' component={ForgotPasswordScreen} />
-                <Stack.Screen name='Reset Password' component={ResetPasswordScreen} />
-                <Stack.Screen name='Home' component={HomeScreen} />
-                <Stack.Screen name='User Profile' component={UserProfileScreen} /> */}
+                <Stack.Screen name='SignUp' component={SignUpScreen} />
+                <Stack.Screen name='EmailVerification' component={EmailVerificationScreen} />
+                <Stack.Screen name='ForgotPassword' component={ForgotPasswordScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
