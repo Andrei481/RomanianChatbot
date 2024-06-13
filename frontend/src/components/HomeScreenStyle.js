@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet , Dimensions } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 5,
         alignSelf: 'flex-end',
+        marginHorizontal: 10,
     },
     listContainer: {
         backgroundColor: 'black',
@@ -79,6 +80,28 @@ const styles = StyleSheet.create({
         paddingBottom: 80, // Adjust to ensure the list doesn't overlap with the text box
         width: '100%',
     },
+    sideMenuContainer: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: Dimensions.get('window').width * 0.75,
+        height: '100%',
+        backgroundColor: '#fff',
+        zIndex: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 5,
+    },
+
+    menuIcon: {
+        position: 'absolute',
+        top: 50,
+        left: 20,
+        zIndex: 10,
+      },
 });
 
 export default styles;

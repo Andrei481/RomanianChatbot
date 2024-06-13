@@ -26,7 +26,9 @@ const saltRounds = 10;
 
 app.post("/register", async (req, res) => {
     try {
+        console.log("aaaaa")
         const { name, username, email, password } = req.body;
+        
 
         if (!name || !username || !email || !password) {
             return res.status(400).json({ message: "Invalid request data" });
@@ -130,7 +132,6 @@ app.post("/forgotpass", async (req, res) => {
         if (!identifier) {
             return res.status(400).json({ message: "Invalid request data" });
         }
-
         const user = await User.findOne({
             $or: [{ email: identifier }, { username: identifier }],
         });

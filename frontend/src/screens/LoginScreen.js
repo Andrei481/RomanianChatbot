@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Image, Animated } from 'react-native';
+import axios from 'axios';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
@@ -14,15 +15,37 @@ const LoginScreen = () => {
     
 
     const onForgotPasswordPressed = () => {
-        navigation.navigate('Forgot Password');
+        navigation.navigate('ForgotPassword');
     };
 
     const onSignUpPressed = () => {
         navigation.navigate('SignUp');
     };
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         console.log("Login button pressed!");
+        const user = {
+            identifier: username,
+            password: password,
+        };
+        try {
+            const response = await axios.post(`https://21c5-2a02-2f09-3205-9f00-accd-19c5-88-a69e.ngrok-free.app/login`, user, { 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 
+            });
+
+            if (response.status === 200) {
+                console.log('Login successful!', response.data);
+                navigation.navigate('HomeScreen'); 
+            } else {
+                Alert.alert('Login Failed', response.data.message || 'Invalid username or password');
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            Alert.alert('Login Failed', error.response?.data?.message || 'An error occurred during login');
+        }
     };
 
     return (
@@ -43,7 +66,7 @@ const LoginScreen = () => {
                         placeholder="Enter Username or Email"
                         value={username}
                         setValue={setUsername}
-                        keyboardType='email-address'
+                        keyboardType='username'
                     />
                     <CustomInput
                         placeholder="Enter Password"
