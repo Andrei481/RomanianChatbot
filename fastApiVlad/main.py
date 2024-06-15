@@ -8,7 +8,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain import HuggingFacePipeline
 import textwrap
-import json
+import re
 import logging
 import requests
 
@@ -55,7 +55,7 @@ data = loader.load()
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 docs = text_splitter.split_documents(data)
 
-model_path = "sentence-transformers/all-MiniLM-l6-v2"
+model_path = "BlackKakapo/stsb-xlm-r-multilingual-ro"
 embeddings = HuggingFaceEmbeddings(model_name=model_path)
 
 db = FAISS.from_documents(docs, embeddings)
@@ -121,11 +121,16 @@ async def rag_endpoint(request: PromptRequest, raw_request: Request):
     logging.debug(f"Received prompt: {prompt}")  # Debugging: Print the received prompt
     result = qa(prompt)
     processed_response = result["result"]
-    start_marker = ">assistant<|end_header_id|>"
-    start_index = processed_response.find(start_marker) + len(start_marker)
-    extracted_str = processed_response[start_index:].strip("[]'\"")
+    # processed_response_str = ''.join(str(e) for e in processed_response)
+    pattern = r">assistant<\|end_header_id\|>\s*(.*?)]"
+    match = re.search(pattern, processed_response, re.DOTALL)
+    extracted_text = match.group(1).strip() if match else None
+    print(f"EXTRACTED TEXT: {extracted_text}")
+    print(f"processed_response: {type(processed_response)}")
 
-    return processed_response
+    cleaned_text = extracted_text.replace('\\n\\n', "").strip().rstrip("'")
+
+    return cleaned_text
 
 if __name__ == "__main__":
     import uvicorn
