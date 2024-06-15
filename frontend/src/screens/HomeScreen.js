@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableWithoutFeedback, Keyboard, Image, TextInput, Button, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, Keyboard, Image, TextInput, Button, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, StyleSheet, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import SideMenu from '../components/SideMenu';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/HomeScreenStyle'; // Adjust the path as necessary
 
 const HomeScreen = () => {
@@ -14,12 +16,19 @@ const HomeScreen = () => {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
   const slideAnim = useState(new Animated.Value(-Dimensions.get('window').width * 0.75))[0]; // Initial position off-screen
   const navigation = useNavigation();
+  const route = useRoute();
+  const { conversationId: newConversationId } = route.params || {};
 
   useEffect(() => {
     askPermission();
   }, []);
+
+  useEffect(() => {
+    fetchConversations(newConversationId);
+  }, [newConversationId]);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -37,6 +46,42 @@ const HomeScreen = () => {
       }
     } catch (error) {
       console.error('Failed to request audio permission', error);
+    }
+  };
+
+  const fetchConversations = async (conversationId) => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const storedConversationId = conversationId || await AsyncStorage.getItem('conversationId');
+
+      if (!token || !storedConversationId) {
+        Alert.alert('Error', 'No authentication token or conversation ID found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/conversation/${storedConversationId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`, // Add Bearer prefix
+        },
+      });
+
+      if (response.status === 200) {
+        const messages = response.data.conversation.messages.map((message, index) => ({
+          ...message,
+          isUser: index % 2 === 0, // Set isUser based on index
+        }));
+        setMessages(messages);
+      } else {
+        Alert.alert('Error', response.data.message || 'Failed to fetch conversation');
+      }
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      Alert.alert('Error', error.response?.data?.message || 'An error occurred while fetching conversation');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,7 +180,7 @@ const HomeScreen = () => {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (text.trim()) {
       const userMessage = { id: messages.length.toString(), text, isUser: true };
       const answerMessage = { id: (messages.length + 1).toString(), text: 'This is an answer message', isUser: false };
@@ -147,6 +192,35 @@ const HomeScreen = () => {
       setTimeout(() => {
         setMessages(prevMessages => [...prevMessages, answerMessage]);
       }, 1000); // 1 second delay for demonstration
+
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        const conversationId = await AsyncStorage.getItem('conversationId');
+
+        if (!token) {
+          Alert.alert('Error', 'No authentication token found');
+          return;
+        }
+
+        const response = await axios.put(`https://b5b2-79-114-87-80.ngrok-free.app/conversation/${conversationId}`, 
+          { messages: [userMessage, answerMessage] },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `${token}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          console.log('Messages added successfully');
+        } else {
+          Alert.alert('Error', response.data.message || 'Failed to add messages');
+        }
+      } catch (error) {
+        console.error('Error adding messages to conversation:', error);
+        Alert.alert('Error', error.response?.data?.message || 'An error occurred while adding messages');
+      }
     }
   };
 
@@ -172,10 +246,18 @@ const HomeScreen = () => {
   );
 
   const renderMessageItem = ({ item }) => (
-    <View style={[styles.messageContainer, item.isUser ? styles.userMessage : styles.answerMessage]}>
+    <View key={item.id} style={[styles.messageContainer, item.isUser ? styles.userMessage : styles.answerMessage]}>
       <Text style={styles.message}>{item.text}</Text>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -211,72 +293,5 @@ const HomeScreen = () => {
     </KeyboardAvoidingView>
   );
 }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     backgroundColor: '#1E1E1E',
-//     paddingTop: 50,
-//     paddingHorizontal: 20,
-//   },
-//   menuIcon: {
-//     position: 'absolute',
-//     top: 50,
-//     left: 20,
-//     zIndex: 10,
-//   },
-//   image: {
-//     width: 100,
-//     height: 100,
-//     alignSelf: 'center',
-//   },
-//   messageContainer: {
-//     padding: 10,
-//     borderRadius: 10,
-//     marginVertical: 5,
-//     marginHorizontal: 10,
-//   },
-//   userMessage: {
-//     backgroundColor: '#007AFF',
-//     alignSelf: 'flex-end',
-//   },
-//   answerMessage: {
-//     backgroundColor: '#E5E5EA',
-//     alignSelf: 'flex-start',
-//   },
-//   message: {
-//     color: '#FFF',
-//   },
-//   textBoxContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     padding: 10,
-//   },
-//   textBox: {
-//     flex: 1,
-//     borderColor: 'gray',
-//     borderWidth: 1,
-//     borderRadius: 20,
-//     paddingHorizontal: 15,
-//     color: 'white',
-//   },
-//   sendButton: {
-//     marginLeft: 10,
-//     backgroundColor: '#007AFF',
-//     borderRadius: 20,
-//     padding: 10,
-//   },
-//   sideMenuContainer: {
-//     position: 'absolute',
-//     top: 0,
-//     bottom: 0,
-//     left: 0,
-//     width: Dimensions.get('window').width * 0.75,
-//     backgroundColor: '#1E1E1E',
-//     zIndex: 10,
-//   },
-//   listContainer: {
-//     paddingVertical: 20,
-//   },
-// });
 
 export default HomeScreen;

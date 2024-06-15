@@ -57,7 +57,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    
+    buttonContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        marginTop: 20,
+    },
     userMessage: {
         alignSelf: 'flex-end', // Align user messages to the right
         backgroundColor: '#dcd7d1', // Light green background for user messages
@@ -95,7 +100,27 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 5,
     },
-
+    conversationText: {
+        fontSize: 16,
+        color: 'white',
+    },
+    conversationItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        backgroundColor: '#333',
+        marginVertical: 5,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'grey',
+        borderRadius: 10,
+    },
+    conversationId: {
+        fontSize: 14,
+        color: 'white',
+        textAlign: 'center', // Center the text
+    },
     menuIcon: {
         position: 'absolute',
         top: 50,

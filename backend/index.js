@@ -291,6 +291,7 @@ app.put("/user/:userId/profilePicture", verifyToken, async (req, res) => {
 // });
 
 app.post("/user/:userId/newConversation", verifyToken, async (req, res) => {
+    console.log("okii")
     try {
         const { userId } = req.params;
         const { messages } = req.body;

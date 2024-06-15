@@ -1,32 +1,74 @@
-// import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-
-const conversations = [
-  { id: '1', title: 'Conversation 1' },
-  { id: '2', title: 'Conversation 2' },
-  { id: '3', title: 'Conversation 3' },
-  // Add more conversations as needed
-];
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SideMenu = ({ navigation, closeMenu }) => {
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        const userId = await AsyncStorage.getItem('userId');
+
+        if (!token || !userId) {
+          Alert.alert('Error', 'No authentication token or user ID found');
+          return;
+        }
+
+        const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}/conversations`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`,
+          },
+        });
+
+        setConversations(response.data.conversations);
+      } catch (error) {
+        console.error("Error retrieving conversations: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConversations();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  const handleConversationPress = async (conversationId) => {
+    try {
+      await AsyncStorage.setItem('conversationId', conversationId);
+      navigation.navigate('HomeScreen', { conversationId }); // Pass conversationId to HomeScreen
+      closeMenu();
+    } catch (error) {
+      console.error('Error saving conversation ID:', error);
+      Alert.alert('Error', 'Failed to save conversation ID');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => { navigation.navigate('HomeScreen'); closeMenu(); }}>
+      <TouchableOpacity onPress={() => { navigation.navigate('UserAccount'); closeMenu(); }}>
         <Text style={styles.menuItem}>User Profile</Text>
       </TouchableOpacity>
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.conversationItem}
-            onPress={() => {
-              // Navigate to the conversation screen
-              navigation.navigate('ConversationScreen', { conversationId: item.id });
-              closeMenu();
-            }}
+            onPress={() => handleConversationPress(item._id)}
           >
-            <Text style={styles.conversationText}>{item.title}</Text>
+            <Text style={styles.conversationText}>{item._id}</Text>
           </TouchableOpacity>
         )}
       />
@@ -40,6 +82,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   menuItem: {
     fontSize: 18,
     marginVertical: 10,
@@ -51,9 +98,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   conversationText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
   },
 });
 
 export default SideMenu;
+

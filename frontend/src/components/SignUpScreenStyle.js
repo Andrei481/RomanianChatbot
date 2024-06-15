@@ -30,7 +30,17 @@ const styles = StyleSheet.create({
     },
     footerText: {
         color: 'white',
-    }
+    },
+    nonEditableBox: {
+        backgroundColor: '#d3d3d3',
+        borderRadius: 10,
+        padding: 10,
+        marginVertical: 10,
+    },
+    nonEditableText: {
+        color: '#333',
+        fontSize: 16,
+    },
 });
 
 export default styles;

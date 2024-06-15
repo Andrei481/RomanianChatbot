@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Image, Animated } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
@@ -29,7 +30,7 @@ const LoginScreen = () => {
             password: password,
         };
         try {
-            const response = await axios.post(`https://21c5-2a02-2f09-3205-9f00-accd-19c5-88-a69e.ngrok-free.app/login`, user, { 
+            const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/login`, user, { 
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -38,7 +39,9 @@ const LoginScreen = () => {
 
             if (response.status === 200) {
                 console.log('Login successful!', response.data);
-                navigation.navigate('HomeScreen'); 
+                await AsyncStorage.setItem('authToken', response.data.token);
+                await AsyncStorage.setItem('userId', response.data.userId);
+                navigation.navigate('Conversations'); 
             } else {
                 Alert.alert('Login Failed', response.data.message || 'Invalid username or password');
             }
