@@ -5,8 +5,9 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
-const SERVER_IP="10.8.0.18" 
-const SERVER_PORT="3000"
+
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
 
 const EmailVerificationScreen = () => {
     const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ const EmailVerificationScreen = () => {
 
     const handleVerifyAccount = async () => {
         try {
-            const response = await axios.patch(`https://21c5-2a02-2f09-3205-9f00-accd-19c5-88-a69e.ngrok-free.app/verify`, {
+            const response = await axios.patch(`http:${SERVER_IP}:${SERVER_PORT}/verify`, {
                 identifier: email,
                 userToken: code,
             });

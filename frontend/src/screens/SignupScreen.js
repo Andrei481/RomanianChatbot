@@ -5,8 +5,10 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
-const SERVER_IP="10.8.0.18" 
-const SERVER_PORT="3000"
+
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
+
 
 const SignUpScreen = () => {
     const [name, setName] = useState('');
@@ -39,7 +41,7 @@ const SignUpScreen = () => {
         };
 
         try {
-            const response = await axios.post(`https://21c5-2a02-2f09-3205-9f00-accd-19c5-88-a69e.ngrok-free.app/register`, user, {
+            const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/register`, user, {
                 headers: {
                     'Content-Type': 'application/json'
                 },

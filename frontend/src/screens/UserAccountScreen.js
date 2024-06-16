@@ -6,8 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/SignUpScreenStyle';
-const SERVER_IP = "10.8.0.18";
-const SERVER_PORT = "3000";
+
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
 
 const UserAccountScreen = () => {
     const [name, setName] = useState('');

@@ -7,8 +7,8 @@ import ConversationsList from '../components/ConversationsList';
 import CustomButton from '../components/CustomButton';
 import styles from '../components/HomeScreenStyle'; // Adjust the path as necessary
 
-const SERVER_IP = "10.8.0.18";
-const SERVER_PORT = "3000";
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
 
 const ConversationsScreen = () => {
   const navigation = useNavigation();
@@ -41,7 +41,7 @@ const ConversationsScreen = () => {
         return;
       }
 
-      const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}/newConversation`,
+      const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/user/${userId}/newConversation`,
         { messages: [] }, // Initially empty messages
         {
           headers: {
