@@ -23,7 +23,6 @@ const ForgotPasswordScreen = () => {
     const handleSendCode = async () => {
         try {
             const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/forgotpass`, user, {
-            const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/forgotpass`, user, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
