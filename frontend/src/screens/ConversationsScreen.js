@@ -41,7 +41,7 @@ const ConversationsScreen = () => {
         return;
       }
 
-      const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/user/${userId}/newConversation`,
+      const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/newConversation`,
         { messages: [] }, // Initially empty messages
         {
           headers: {

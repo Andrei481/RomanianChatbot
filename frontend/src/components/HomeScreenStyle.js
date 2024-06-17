@@ -57,6 +57,22 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    userButton: {
+        backgroundColor: '#007AFF',
+        borderRadius: 20,
+        padding: 10,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    responseButton: {
+        backgroundColor: '#007AFF',
+        borderRadius: 20,
+        padding: 10,
+        marginLeft: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     buttonContainer: {
         justifyContent: 'center',
         alignItems: 'center',
@@ -66,10 +82,17 @@ const styles = StyleSheet.create({
     userMessage: {
         alignSelf: 'flex-end', // Align user messages to the right
         backgroundColor: '#dcd7d1', // Light green background for user messages
+        maxWidth: '85%',
+        wordWrap: 'break-word',
+        paddingRight: '20%',
     },
     answerMessage: {
         alignSelf: 'flex-start', // Align answer messages to the left
         backgroundColor: '#2ea6cb', // Light grey background for answer messages
+        maxWidth: '85%',
+        wordWrap: 'break-word',
+        paddingLeft: '20%',
+        // textAlign: 'left',
     },
     messageContainer: {
         padding: 10,

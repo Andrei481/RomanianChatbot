@@ -22,7 +22,7 @@ const ForgotPasswordScreen = () => {
 
     const handleSendCode = async () => {
         try {
-            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/forgotpass`, user, {
+            const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/forgotpass`, user, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -41,11 +41,7 @@ const ForgotPasswordScreen = () => {
             Alert.alert('Password Change Failed', errorMessage);
         }
     };
-
-    
-
         
-
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={styles.container}>

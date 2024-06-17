@@ -36,7 +36,7 @@ const LoginScreen = () => {
             password: password,
         };
         try {
-            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/login`, user, { 
+            const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/login`, user, { 
                 headers: {
                     'Content-Type': 'application/json'
                 },

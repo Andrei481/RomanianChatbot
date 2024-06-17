@@ -17,7 +17,7 @@ const HomeScreen = () => {
   const [recording, setRecording] = useState();
   const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
-  const [transcription, setTranscription] = useState("");
+  const [wait, setWait] = useState(false);
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -42,6 +42,14 @@ const HomeScreen = () => {
       useNativeDriver: true,
     }).start();
   }, [isMenuVisible]);
+
+  useEffect(() => {
+    if (audioUri) {
+      playAudio();
+      setWait(false);
+      setAudioUri(null);
+    }
+  }, [audioUri]);
 
   const askPermission = async () => {
     try {
@@ -92,8 +100,6 @@ const HomeScreen = () => {
 
   const startRecording = async () => {
     try {
-      setAudioUri(null);
-      setTranscription("");
       const { granted } = await Audio.requestPermissionsAsync();
       if (granted) {
         const recordingOptions = {
@@ -101,7 +107,7 @@ const HomeScreen = () => {
             extension: '.wav',
             audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
             sampleRate: 44100,
-            numberOfChannels: 2,
+            numberOfChannels: 1,
             bitRate: 128000,
           },
           ios: {
@@ -150,12 +156,39 @@ const HomeScreen = () => {
       .then((response) => response.text())
       .then((result) => {
         console.log(result);
-        setTranscription(result.startsWith('"') && result.endsWith('"') ? result.slice(1, -1) : result);
-        fetchAudio();
+        setText(result.startsWith('"') && result.endsWith('"') ? result.slice(1, -1) : result);
       })
       .catch((error) => {
         console.error('Error uploading audio', error);
       });
+  };
+
+  const sendText = async (text) => {
+    try {
+      setAudioUri(null);
+      setWait(true);
+      console.log(text);
+      if(text != "")
+      {
+        const response = await fetch('https://fat-turtle.loca.lt/send_textForTTS', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: text,
+        });
+    
+        const result = await response.text();
+        console.log(result);
+        if(result != 404)
+        {
+          fetchAudio();
+        }
+      }
+
+    } catch (error) {
+      console.error('Error sending text', error);
+    }
   };
 
   const fetchAudio = async () => {
@@ -170,6 +203,7 @@ const HomeScreen = () => {
       })
       .catch(error => {
         console.error('Error fetching audio', error);
+        setAudioUri(null);
       });
   };
 
@@ -354,19 +388,32 @@ const HomeScreen = () => {
           style={styles.image}
           resizeMode="contain"
         />
-        <Text style={{ color: 'white' }}>Audio Recorder</Text>
-        <Button title={isRecording ? 'Stop Recording' : 'Start Recording'} onPress={isRecording ? stopRecording : startRecording} />
-        <Button title="Play Recorded Audio" onPress={playAudio} disabled={!audioUri || transcription == "404"} />
-        <Text style={{ color: 'white' }}>{transcription}</Text>
       </View>
     </TouchableWithoutFeedback>
   );
 
-  const renderMessageItem = ({ item }) => (
-    <View key={item.id} style={[styles.messageContainer, item.isUser ? styles.userMessage : styles.answerMessage]}>
-      <Text style={styles.message}>{item.text}</Text>
-    </View>
-  );
+  const renderMessageItem = ({ item }) => {
+    const playButton = (
+      <TouchableOpacity style={item.isUser ? styles.userButton : styles.responseButton} onPress={() => sendText(item.text)} disabled={wait}>
+        <Ionicons name="play-circle" size={24} color={wait ? "black" : "white"} />
+      </TouchableOpacity>
+    );
+  
+    return (
+      <View
+        key={item.id} 
+        style={[
+          styles.messageContainer,
+          item.isUser ? styles.userMessage : styles.answerMessage,
+          { flexDirection: item.isUser ? 'row' : 'row-reverse' }
+        ]}
+      >
+
+        {playButton}
+        <Text style={styles.message}>{item.text}</Text>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -397,6 +444,9 @@ const HomeScreen = () => {
             value={text}
             onChangeText={setText}
           />
+          <TouchableOpacity style={styles.sendButton} onPress={isRecording ? stopRecording : startRecording}>
+            <Ionicons name="mic-outline" size={24} color={isRecording ? 'black' : 'white'} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
             <Ionicons name="send" size={24} color="white" />
           </TouchableOpacity>
