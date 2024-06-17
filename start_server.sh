@@ -1,1 +1,1 @@
-nohup npm --prefix ./backend start >> output.log &
+nohup npm --prefix ./backend run dev >> output.log &
