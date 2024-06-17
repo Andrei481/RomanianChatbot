@@ -7,6 +7,8 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../components/LoginScreenStyle';
 
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
 const gifDuration = 50000;
 
 const LoginScreen = () => {
@@ -34,7 +36,7 @@ const LoginScreen = () => {
             password: password,
         };
         try {
-            const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/login`, user, { 
+            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/login`, user, { 
                 headers: {
                     'Content-Type': 'application/json'
                 },

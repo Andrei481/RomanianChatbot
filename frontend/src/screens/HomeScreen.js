@@ -8,6 +8,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/HomeScreenStyle'; // Adjust the path as necessary
 
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
+const LLM_SERVER_IP=process.env.LLM_SERVER_IP;
+const LLM_SERVER_PORT=process.env.LLM_SERVER_PORT;
+
 const HomeScreen = () => {
   const [recording, setRecording] = useState();
   const [isRecording, setIsRecording] = useState(false);
@@ -61,7 +66,7 @@ const HomeScreen = () => {
         return;
       }
 
-      const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/conversation/${storedConversationId}`, {
+      const response = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/conversation/${storedConversationId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `${token}`, // Add Bearer prefix
@@ -180,49 +185,161 @@ const HomeScreen = () => {
     }
   };
 
+
   const handleSend = async () => {
     if (text.trim()) {
       const userMessage = { id: messages.length.toString(), text, isUser: true };
-      const answerMessage = { id: (messages.length + 1).toString(), text: 'This is an answer message', isUser: false };
+      // const answerMessage = { id: (messages.length + 1).toString(), text: 'This is an answer message', isUser: false };
 
       setMessages([...messages, userMessage]);
       setText('');
 
-      // Add the answer message with a slight delay
-      setTimeout(() => {
-        setMessages(prevMessages => [...prevMessages, answerMessage]);
-      }, 1000); // 1 second delay for demonstration
+      // // Add the answer message with a slight delay
+      // setTimeout(() => {
+      //   setMessages(prevMessages => [...prevMessages, answerMessage]);
+      // }, 1000); // 1 second delay for demonstration
 
       try {
-        const token = await AsyncStorage.getItem('authToken');
-        const conversationId = await AsyncStorage.getItem('conversationId');
-
-        if (!token) {
-          Alert.alert('Error', 'No authentication token found');
-          return;
-        }
-
-        const response = await axios.put(`https://b5b2-79-114-87-80.ngrok-free.app/conversation/${conversationId}`, 
-          { messages: [userMessage, answerMessage] },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `${token}`,
-            },
-          }
-        );
-
+        const response = await axios.post(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/rag`, { prompt: text }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // Set a timeout for the request
+        });
+  
+        console.log('Response received:', response);
+        console.log("RESPONSE DATA: ", response.data);
+  
         if (response.status === 200) {
-          console.log('Messages added successfully');
+          let answer = response.data;
+          console.log('ANSWER:', answer);
+
+          let answerMessage = { id: (messages.length + 1).toString(), text: answer, isUser: false };
+          setMessages(prevMessages => [...prevMessages, answerMessage]);
+          try {
+            const token = await AsyncStorage.getItem('authToken');
+            const conversationId = await AsyncStorage.getItem('conversationId');
+    
+            if (!token) {
+              Alert.alert('Error', 'No authentication token found');
+              return;
+            }
+    
+            const response = await axios.put(`http://${SERVER_IP}:${SERVER_PORT}/conversation/${conversationId}`, 
+              { messages: [userMessage, answerMessage] },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `${token}`,
+                },
+              }
+            );
+    
+            if (response.status === 200) {
+              console.log('Messages added successfully');
+            } else {
+              Alert.alert('Error', response.data.message || 'Failed to add messages');
+            }
+          } catch (error) {
+            console.error('Error adding messages to conversation:', error);
+            Alert.alert('Error', error.response?.data?.message || 'An error occurred while adding messages');
+          }
         } else {
-          Alert.alert('Error', response.data.message || 'Failed to add messages');
+          Alert.alert('Error', response.data.message || 'Failed to get a response');
         }
-      } catch (error) {
-        console.error('Error adding messages to conversation:', error);
-        Alert.alert('Error', error.response?.data?.message || 'An error occurred while adding messages');
+      } catch {
+        if (error.response) {
+          // Server responded with a status other than 200 range
+          console.error('Server error response:', error.response.data);
+          Alert.alert('Server Error', error.response.data.message || 'An error occurred while getting a response');
+        } else if (error.request) {
+          // No response was received
+          console.error('No response received:', error.request);
+          Alert.alert('Network Error', 'No response received from the server. Please check your network connection.');
+        } else {
+          // Something happened in setting up the request
+          console.error('Request error:', error.message);
+          Alert.alert('Request Error', error.message || 'An error occurred while setting up the request.');
+        }
       }
     }
   };
+
+  // const handleSend = async () => {
+  //   if (text.trim()) {
+  //     const userMessage = { id: messages.length.toString(), text, isUser: true };
+  
+  //     setMessages([...messages, userMessage]);
+  //     setText('');
+  
+  //     try {
+  //       console.log(`Sending request to http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/rag with prompt: ${text}`);
+        
+  //       const response = await axios.post(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/rag`, { prompt: text }, {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         timeout: 10000, // Set a timeout for the request
+  //       });
+  
+  //       console.log('Response received:', response);
+  //       console.log("RESPONSE DATA: ", response.data);
+  
+  //       if (response.status === 200) {
+  //         let answer = response.data;
+  //         console.log('ANSWER:', answer);
+  
+  //         const answerMessage = { id: (messages.length + 1).toString(), text: answer, isUser: false };
+  //         setMessages(prevMessages => [...prevMessages, answerMessage]);
+
+  //         try {
+  //           const token = await AsyncStorage.getItem('authToken');
+  //           const conversationId = await AsyncStorage.getItem('conversationId');
+    
+  //           if (!token) {
+  //             Alert.alert('Error', 'No authentication token found');
+  //             return;
+  //           }
+    
+  //           const updateConversationResponse = await axios.put(`http://${SERVER_IP}:${SERVER_PORT}/${conversationId}`, 
+  //             { messages: [userMessage, answerMessage] },
+  //             {
+  //               headers: {
+  //                 'Content-Type': 'application/json',
+  //                 'Authorization': `${token}`,
+  //               },
+  //             }
+  //           );
+    
+  //           if (updateConversationResponse.status === 200) {
+  //             console.log('Messages added successfully');
+  //           } else {
+  //             Alert.alert('Error', response.data.message || 'Failed to add messages');
+  //           }
+  //         } catch (error) {
+  //           console.error('Error adding messages to conversation:', error);
+  //           Alert.alert('Error', error.response?.data?.message || 'An error occurred while adding messages');
+  //         }
+  //       } else {
+  //         Alert.alert('Error', response.data.message || 'Failed to get a response');
+  //       }
+  //     } catch (error) {
+  //       if (error.response) {
+  //         // Server responded with a status other than 200 range
+  //         console.error('Server error response:', error.response.data);
+  //         Alert.alert('Server Error', error.response.data.message || 'An error occurred while getting a response');
+  //       } else if (error.request) {
+  //         // No response was received
+  //         console.error('No response received:', error.request);
+  //         Alert.alert('Network Error', 'No response received from the server. Please check your network connection.');
+  //       } else {
+  //         // Something happened in setting up the request
+  //         console.error('Request error:', error.message);
+  //         Alert.alert('Request Error', error.message || 'An error occurred while setting up the request.');
+  //       }
+  //     }
+  //   }
+  // };
 
   const renderHeader = () => (
     <TouchableWithoutFeedback onPress={() => isMenuVisible && setIsMenuVisible(false)}>

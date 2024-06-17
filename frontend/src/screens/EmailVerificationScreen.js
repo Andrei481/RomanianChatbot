@@ -5,8 +5,10 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
-const SERVER_IP="10.8.0.18" 
-const SERVER_PORT="3000"
+
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
+
 
 const EmailVerificationScreen = () => {
     const [email, setEmail] = useState('');
@@ -15,7 +17,7 @@ const EmailVerificationScreen = () => {
 
     const handleVerifyAccount = async () => {
         try {
-            const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/verify`, {
+            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/verify`, {
                 identifier: email,
                 userToken: code,
             });
@@ -44,9 +46,9 @@ const EmailVerificationScreen = () => {
                         resizeMode="contain"
                     />
                 <View style={styles.innerContainer}>
-                    <Text style={styles.footerText}>What's your new account's email?</Text>
+                    <Text style={styles.footerText}>What's your account's email or username?</Text>
                     <CustomInput
-                        placeholder="Enter Email"
+                        placeholder="Enter Email or Username"
                         value={email}
                         setValue={setEmail}
                         keyboardType='email-address'

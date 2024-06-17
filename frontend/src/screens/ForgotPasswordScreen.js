@@ -6,8 +6,9 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
-const SERVER_IP="10.8.0.18" 
-const SERVER_PORT="3000"
+
+const SERVER_IP=process.env.SERVER_IP
+const SERVER_PORT=process.env.SERVER_PORT
 
 const ForgotPasswordScreen = () => {
     const [email, setEmail] = useState('');
@@ -21,6 +22,7 @@ const ForgotPasswordScreen = () => {
 
     const handleSendCode = async () => {
         try {
+            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/forgotpass`, user, {
             const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/forgotpass`, user, {
                 headers: {
                     'Content-Type': 'application/json'
@@ -54,9 +56,9 @@ const ForgotPasswordScreen = () => {
                         resizeMode="contain"
                     />
                 <View style={styles.innerContainer}>
-                    <Text style={styles.footerText}>What's your email?</Text>
+                    <Text style={styles.footerText}>What's your email or username?</Text>
                     <CustomInput
-                        placeholder="Enter Email"
+                        placeholder="Enter Email or Username"
                         value={email}
                         setValue={setEmail}
                         keyboardType='email-address'
