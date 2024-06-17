@@ -29,7 +29,7 @@ const UserAccountScreen = () => {
                     return;
                 }
 
-                const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}`, {
+                const response = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `${token}`,
@@ -63,7 +63,7 @@ const UserAccountScreen = () => {
                 return;
             }
 
-            const response = await axios.delete(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}`, {
+            const response = await axios.delete(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `${token}`,

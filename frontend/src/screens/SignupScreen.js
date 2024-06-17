@@ -9,7 +9,6 @@ import styles from '../components/SignUpScreenStyle';
 const SERVER_IP=process.env.SERVER_IP
 const SERVER_PORT=process.env.SERVER_PORT
 
-
 const SignUpScreen = () => {
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
