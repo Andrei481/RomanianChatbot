@@ -23,6 +23,10 @@ const LoginScreen = () => {
         navigation.navigate('SignUp');
     };
 
+    const onVerifyAccount = () => {
+        navigation.navigate('EmailVerification');
+    };
+
     const handleLogin = async () => {
         console.log("Login button pressed!");
         const user = {
@@ -58,12 +62,12 @@ const LoginScreen = () => {
                         source={require('../pictures/logo.jpg.png')} // Adjust the path to your image file
                         style={styles.image}
                         resizeMode="contain"
-                    />
+                />
                 <Image
                         source={require('../pictures/messagif.gif')} // Adjust the path to your image file
                         style={styles.image}
                         resizeMode="contain"
-                    />
+                />
                 <View style={styles.innerContainer}>
                     <CustomInput
                         placeholder="Enter Username or Email"
@@ -83,22 +87,28 @@ const LoginScreen = () => {
                                 type='PRIMARY'
                                 disabled={!username || !password}
                             />
-                        </View>
-                        <View>
-                            <CustomButton
-                                text='Forgot your Password?'
-                                onPress={onForgotPasswordPressed}
-                                type='TERTIARY'
-                            />
-                        </View>
+                    </View>
+                    <View>
+                        <CustomButton
+                            text='Forgot your Password?'
+                            onPress={onForgotPasswordPressed}
+                            type='TERTIARY'
+                        />
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+                        <CustomButton
+                            text='Sign Up!' onPress={onSignUpPressed}
+                            type='TERTIARY'
+                        />
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+                        <CustomButton
+                            text='Verify Account!' onPress={onVerifyAccount}
+                            type='TERTIARY'
+                        />
+                    </View>
                 </View>
-                    <Text style={styles.footerText}>Don't have an account?</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-                            <CustomButton
-                                text='Sign Up!' onPress={onSignUpPressed}
-                                type='TERTIARY'
-                            />
-                        </View>
+                        
             </ScrollView>
         </TouchableWithoutFeedback>
         

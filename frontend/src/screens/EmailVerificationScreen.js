@@ -15,7 +15,7 @@ const EmailVerificationScreen = () => {
 
     const handleVerifyAccount = async () => {
         try {
-            const response = await axios.patch(`https://21c5-2a02-2f09-3205-9f00-accd-19c5-88-a69e.ngrok-free.app/verify`, {
+            const response = await axios.post(`https://b5b2-79-114-87-80.ngrok-free.app/verify`, {
                 identifier: email,
                 userToken: code,
             });
