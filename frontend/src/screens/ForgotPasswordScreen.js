@@ -42,7 +42,7 @@ const ForgotPasswordScreen = () => {
 
     const handleChangePassword = async () => {
         try {
-            const response = await axios.patch(`http:${SERVER_IP}:${SERVER_PORT}/resetpass`, {
+            const response = await axios.post(`http:${SERVER_IP}:${SERVER_PORT}/resetpass`, {
                 identifier: email,
                 resetToken: code,
                 newPassword: newPassword
@@ -77,9 +77,9 @@ const ForgotPasswordScreen = () => {
                         resizeMode="contain"
                     />
                 <View style={styles.innerContainer}>
-                    <Text style={styles.footerText}>What's your email?</Text>
+                    <Text style={styles.footerText}>What's your email or username?</Text>
                     <CustomInput
-                        placeholder="Enter Email"
+                        placeholder="Enter Email or Username"
                         value={email}
                         setValue={setEmail}
                         keyboardType='email-address'

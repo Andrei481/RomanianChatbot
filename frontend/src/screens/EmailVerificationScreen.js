@@ -8,8 +8,6 @@ import styles from '../components/SignUpScreenStyle';
 
 const SERVER_IP=process.env.SERVER_IP
 const SERVER_PORT=process.env.SERVER_PORT
-console.log(SERVER_IP)
-console.log(SERVER_PORT)
 
 
 const EmailVerificationScreen = () => {
@@ -48,9 +46,9 @@ const EmailVerificationScreen = () => {
                         resizeMode="contain"
                     />
                 <View style={styles.innerContainer}>
-                    <Text style={styles.footerText}>What's your new account's email?</Text>
+                    <Text style={styles.footerText}>What's your account's email or username?</Text>
                     <CustomInput
-                        placeholder="Enter Email"
+                        placeholder="Enter Email or Username"
                         value={email}
                         setValue={setEmail}
                         keyboardType='email-address'
