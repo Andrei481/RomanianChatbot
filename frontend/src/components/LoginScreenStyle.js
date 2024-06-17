@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     imageContainer: {
         alignItems: 'center',
 
-        marginBottom: 10, // Adjust as needed
+        marginBottom: 5, // Adjust as needed
     },
     image: {
         width: '100%', // Adjust the width as needed
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     innerContainer: {
-        padding: 5,
+        padding: 3,
         width: '70%',
         justifyContent: 'center', // Centers vertically
         position: 'relative',
@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         color: 'white',
+        fontSize: 15
     }
 });
 
