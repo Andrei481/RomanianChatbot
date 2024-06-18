@@ -3,6 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
+
 const SideMenu = ({ navigation, closeMenu }) => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +21,7 @@ const SideMenu = ({ navigation, closeMenu }) => {
           return;
         }
 
-        const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}/conversations`, {
+        const response = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/conversations`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `${token}`,

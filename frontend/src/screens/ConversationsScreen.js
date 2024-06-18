@@ -7,8 +7,8 @@ import ConversationsList from '../components/ConversationsList';
 import CustomButton from '../components/CustomButton';
 import styles from '../components/HomeScreenStyle'; // Adjust the path as necessary
 
-const SERVER_IP=process.env.SERVER_IP
-const SERVER_PORT=process.env.SERVER_PORT
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
 
 const ConversationsScreen = () => {
   const navigation = useNavigation();

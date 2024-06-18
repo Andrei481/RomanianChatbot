@@ -7,8 +7,8 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../components/LoginScreenStyle';
 
-const SERVER_IP=process.env.SERVER_IP
-const SERVER_PORT=process.env.SERVER_PORT
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
 const gifDuration = 50000;
 
 const LoginScreen = () => {
