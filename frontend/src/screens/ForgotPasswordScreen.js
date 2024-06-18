@@ -11,13 +11,11 @@ const SERVER_IP=process.env.SERVER_IP;
 const SERVER_PORT=process.env.SERVER_PORT;
 
 const ForgotPasswordScreen = () => {
-    const [email, setEmail] = useState('');
-    const [code, setCode] = useState('');
-    const [newPassword, setNewPassword] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const navigation = useNavigation();
 
     const user = {
-        identifier: email,
+        identifier: identifier,
     };
 
     const handleSendCode = async () => {
@@ -30,7 +28,7 @@ const ForgotPasswordScreen = () => {
             
             });
             if (response.status === 200) {
-                navigation.navigate('ResetPassword');
+                navigation.navigate('ResetPassword', { identifier })
                 Alert.alert('Code Sent Successfully', 'Your password resetting code was sent to your email address.');
             } else {
                 Alert.alert('Password Change Failed', response.data.message || 'Invalid verification code or email.');
@@ -54,15 +52,15 @@ const ForgotPasswordScreen = () => {
                     <Text style={styles.footerText}>What's your email or username?</Text>
                     <CustomInput
                         placeholder="Enter Email or Username"
-                        value={email}
-                        setValue={setEmail}
+                        value={identifier}
+                        setValue={setIdentifier}
                         keyboardType='email-address'
                     />
                     <View style={{ width: 200, marginTop: 10, marginBottom:20 }}>
                             <CustomButton
                                 text='Send Password Code' onPress={handleSendCode}
                                 type='PRIMARY'
-                                disabled={!email}
+                                disabled={!identifier}
                             />
                     </View>
                 </View>
