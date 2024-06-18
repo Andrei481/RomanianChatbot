@@ -54,35 +54,53 @@ const UserAccountScreen = () => {
     }, []);
 
     const handleDeleteAccount = async () => {
-        try {
-            const token = await AsyncStorage.getItem('authToken');
-            const userId = await AsyncStorage.getItem('userId');
-
-            if (!token || !userId) {
-                Alert.alert('Error', 'No authentication token or user ID found');
-                return;
-            }
-
-            const response = await axios.delete(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `${token}`,
+        Alert.alert(
+            'Confirm Deletion',
+            'Are you sure you want to delete your account? This action cannot be undone.',
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel'
                 },
-            });
-
-            if (response.status === 200) {
-                Alert.alert('Success', 'Account deleted successfully');
-                // Clear AsyncStorage and navigate to the login screen
-                await AsyncStorage.clear();
-                navigation.navigate('Login');
-            } else {
-                Alert.alert('Error', response.data.message || 'Failed to delete account');
-            }
-        } catch (error) {
-            console.error('Error deleting account:', error);
-            Alert.alert('Error', error.response?.data?.message || 'An error occurred while deleting account');
-        }
+                {
+                    text: 'Yes',
+                    onPress: async () => {
+                        try {
+                            const token = await AsyncStorage.getItem('authToken');
+                            const userId = await AsyncStorage.getItem('userId');
+    
+                            if (!token || !userId) {
+                                Alert.alert('Error', 'No authentication token or user ID found');
+                                return;
+                            }
+    
+                            const response = await axios.delete(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}`, {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `${token}`,
+                                },
+                            });
+    
+                            if (response.status === 200) {
+                                Alert.alert('Success', 'Account deleted successfully');
+                                // Clear AsyncStorage and navigate to the login screen
+                                await AsyncStorage.clear();
+                                navigation.navigate('Login');
+                            } else {
+                                Alert.alert('Error', response.data.message || 'Failed to delete account');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting account:', error);
+                            Alert.alert('Error', error.response?.data?.message || 'An error occurred while deleting account');
+                        }
+                    }
+                }
+            ],
+            { cancelable: false }
+        );
     };
+    
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
