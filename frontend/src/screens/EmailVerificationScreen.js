@@ -17,7 +17,8 @@ const EmailVerificationScreen = () => {
 
     const handleVerifyAccount = async () => {
         try {
-            const response = await axios.patch(`http://${SERVER_IP}:${SERVER_PORT}/verify`, {
+            console.log(`http://${SERVER_IP}:${SERVER_PORT}/verify`);
+            const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/verify`, {
                 identifier: email,
                 userToken: code,
             });

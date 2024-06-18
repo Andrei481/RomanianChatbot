@@ -53,10 +53,13 @@ const SignUpScreen = () => {
                 timeout: 10000 // Set a timeout to avoid hanging indefinitely
             });
             // console.log(name, " ", username);
-            Alert.alert("Success", "Account created successfully!");
-            navigation.navigate('EmailVerification');
-            console.log("Response from server:", response.data);
-
+            if(response.status === 200) {
+                Alert.alert("Success", "Account created successfully!");
+                navigation.navigate('EmailVerification');
+                console.log("Response from server:", response.data);
+            } else {
+                Alert.alert('Registration Failed');
+            }
             
         } catch (error) {
             if (error.response) {

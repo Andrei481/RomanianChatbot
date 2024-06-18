@@ -123,7 +123,7 @@ app.post("/login", async (req, res) => {
         }
 
         if (!user.verified) {
-            return res.status(406).json({ message: "Email not verified" });
+            return res.status(403).json({ message: "Email not verified" });
         }
         const token = generateToken(user._id);
 
