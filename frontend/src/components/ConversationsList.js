@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/HomeScreenStyle';
 import { useNavigation } from '@react-navigation/native';
 
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
+
 const ConversationsList = () => {
     const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
@@ -20,7 +23,7 @@ const ConversationsList = () => {
           return;
         }
 
-        const response = await axios.get(`https://b5b2-79-114-87-80.ngrok-free.app/user/${userId}/conversations`, {
+        const response = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/conversations`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `${token}`,

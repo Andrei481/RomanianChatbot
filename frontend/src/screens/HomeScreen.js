@@ -28,10 +28,6 @@ const HomeScreen = () => {
   const { conversationId: newConversationId } = route.params || {};
 
   useEffect(() => {
-    askPermission();
-  }, []);
-
-  useEffect(() => {
     fetchConversations(newConversationId);
   }, [newConversationId]);
 
@@ -50,17 +46,6 @@ const HomeScreen = () => {
       setAudioUri(null);
     }
   }, [audioUri]);
-
-  const askPermission = async () => {
-    try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Permission to record audio denied');
-      }
-    } catch (error) {
-      console.error('Failed to request audio permission', error);
-    }
-  };
 
   const fetchConversations = async (conversationId) => {
     setLoading(true);
@@ -106,17 +91,17 @@ const HomeScreen = () => {
           android: {
             extension: '.wav',
             audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
-            sampleRate: 44100,
+            sampleRate: 48000,
             numberOfChannels: 1,
-            bitRate: 128000,
+            bitRate: 256000,
           },
           ios: {
             extension: '.wav',
             audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
-            sampleRate: 44100,
+            sampleRate: 48000,
             numberOfChannels: 1,
-            bitRate: 128000,
-            linearPCMBitDepth: 16,
+            bitRate: 256000,
+            linearPCMBitDepth: 24,
             linearPCMIsBigEndian: false,
             linearPCMIsFloat: false,
           },
@@ -156,7 +141,10 @@ const HomeScreen = () => {
       .then((response) => response.text())
       .then((result) => {
         console.log(result);
-        setText(result.startsWith('"') && result.endsWith('"') ? result.slice(1, -1) : result);
+        if(result != 404)
+        {
+          setText(result.startsWith('"') && result.endsWith('"') ? result.slice(1, -1) : result);
+        }
       })
       .catch((error) => {
         console.error('Error uploading audio', error);
@@ -184,6 +172,7 @@ const HomeScreen = () => {
         {
           fetchAudio();
         }
+        else setWait(false);
       }
 
     } catch (error) {
@@ -445,10 +434,10 @@ const HomeScreen = () => {
             onChangeText={setText}
           />
           <TouchableOpacity style={styles.sendButton} onPress={isRecording ? stopRecording : startRecording}>
-            <Ionicons name="mic-outline" size={24} color={isRecording ? 'black' : 'white'} />
+            <Ionicons name="mic-outline" size={24} color={isRecording ? '#003BB8' : 'white'} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-            <Ionicons name="send" size={24} color="white" />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend} disabled = {isRecording}>
+            <Ionicons name="send" size={24} color={isRecording ? 'black' : 'white'} />
           </TouchableOpacity>
         </View>
         {isMenuVisible && (

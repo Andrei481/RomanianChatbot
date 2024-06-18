@@ -5,9 +5,10 @@ import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
+import CustomInputSignUp from '../components/CustomInputSignUp';
 
-const SERVER_IP=process.env.SERVER_IP
-const SERVER_PORT=process.env.SERVER_PORT
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
 
 const SignUpScreen = () => {
     const [firstName, setFirstName] = useState('');

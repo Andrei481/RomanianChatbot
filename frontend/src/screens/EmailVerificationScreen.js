@@ -6,8 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import styles from '../components/SignUpScreenStyle';
 
-const SERVER_IP=process.env.SERVER_IP
-const SERVER_PORT=process.env.SERVER_PORT
+const SERVER_IP=process.env.SERVER_IP;
+const SERVER_PORT=process.env.SERVER_PORT;
 
 
 const EmailVerificationScreen = () => {
