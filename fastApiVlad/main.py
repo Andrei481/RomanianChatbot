@@ -11,7 +11,23 @@ import textwrap
 import re
 import logging
 import requests
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import os
+from faster_whisper import WhisperModel
+import torch
+import wave
+from piper.voice import PiperVoice
 
+print(torch.__version__)
+print(torch.cuda.is_available())
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using device:", device)
+
+tts_model = "./model_tts_vlad/ro_RO-vlad-medium.onnx"
+model = WhisperModel("model_vlad", device="cuda", compute_type="float16")
+voice = PiperVoice.load(tts_model)
 logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI()
@@ -28,6 +44,18 @@ def generate_with_vllm(prompt, max_length=1024, temperature=0.95, **kwargs):
     response = requests.post(url, json=payload)
     response.raise_for_status()
     return str(response.json()["text"])
+
+def transcribe(audio_file_path):
+    segments, _ = model.transcribe(audio_file_path, beam_size=5, language="ro", condition_on_previous_text=False)
+
+    text=""
+
+    for segment in segments:
+        print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+        text+=segment.text+" "
+    print(text+" :)")
+
+    return text
 
 # Create CustomPipeline
 class CustomPipeline:
@@ -131,6 +159,37 @@ async def rag_endpoint(request: PromptRequest, raw_request: Request):
     cleaned_text = extracted_text.replace('\\n\\n', "").strip().rstrip("'")
 
     return cleaned_text
+
+@app.post('/upload')
+async def upload(audio: UploadFile = File(...)):
+    filename = os.path.join(os.path.dirname(__file__), 'audio.wav')
+    with open(filename, "wb") as audio_file:
+        audio_content = await audio.read()
+        audio_file.write(audio_content)
+        
+    text = transcribe(filename)
+
+    return text
+
+@app.post('/send_textForTTS')
+async def send_textForTTS(request : Request):
+    text = await request.body()
+    text_str = text.decode("utf-8")
+    
+    print("This is the received text: ", text_str)
+    wav_file = wave.open('output.wav', 'w')
+    audio = voice.synthesize(text, wav_file)
+    
+    return text_str
+
+@app.get('/get_audio')
+async def get_audio():
+    print("am ajuns aici")
+    audio_file_path = os.path.join(os.path.dirname(__file__), 'output.wav')
+    if os.path.exists(audio_file_path):
+        return FileResponse(audio_file_path, media_type="audio/wav")
+    else:
+        raise HTTPException(status_code=404, detail="Audio file not found")
 
 if __name__ == "__main__":
     import uvicorn
