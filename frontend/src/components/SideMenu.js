@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SERVER_IP=process.env.SERVER_IP;
-const SERVER_PORT=process.env.SERVER_PORT;
+const SERVER_IP = process.env.SERVER_IP;
+const SERVER_PORT = process.env.SERVER_PORT;
 
 const SideMenu = ({ navigation, closeMenu }) => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -21,16 +22,24 @@ const SideMenu = ({ navigation, closeMenu }) => {
           return;
         }
 
-        const response = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/conversations`, {
+        const conversationsResponse = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/conversations`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `${token}`,
           },
         });
 
-        setConversations(response.data.conversations);
+        const userResponse = await axios.get(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`,
+          },
+        });
+
+        setConversations(conversationsResponse.data.conversations);
+        setUserData(userResponse.data);
       } catch (error) {
-        console.error("Error retrieving conversations: ", error);
+        console.error("Error retrieving conversations or user data: ", error);
       } finally {
         setLoading(false);
       }
@@ -50,7 +59,7 @@ const SideMenu = ({ navigation, closeMenu }) => {
   const handleConversationPress = async (conversationId) => {
     try {
       await AsyncStorage.setItem('conversationId', conversationId);
-      navigation.navigate('HomeScreen', { conversationId }); // Pass conversationId to HomeScreen
+      navigation.navigate('HomeScreen', { conversationId });
       closeMenu();
     } catch (error) {
       console.error('Error saving conversation ID:', error);
@@ -61,7 +70,14 @@ const SideMenu = ({ navigation, closeMenu }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => { navigation.navigate('UserAccount'); closeMenu(); }}>
-        <Text style={styles.menuItem}>User Profile</Text>
+        {userData && userData.profilePicture ? (
+          <Image
+            source={{ uri: `data:image/png;base64,${userData.profilePicture}` }}
+            style={styles.profilePicture}
+          />
+        ) : (
+          <Text style={styles.greeting}>Hello, {userData ? userData.name : 'User'}</Text>
+        )}
       </TouchableOpacity>
       <FlatList
         data={conversations}
@@ -90,7 +106,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  menuItem: {
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 20,
+  },
+  greeting: {
     fontSize: 18,
     marginVertical: 10,
   },
@@ -107,4 +129,3 @@ const styles = StyleSheet.create({
 });
 
 export default SideMenu;
-

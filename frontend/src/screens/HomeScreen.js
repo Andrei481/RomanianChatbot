@@ -436,7 +436,7 @@ const HomeScreen = () => {
           <TouchableOpacity style={styles.sendButton} onPress={isRecording ? stopRecording : startRecording}>
             <Ionicons name="mic-outline" size={24} color={isRecording ? '#003BB8' : 'white'} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend} disabled = {isRecording}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend} disabled={isRecording}>
             <Ionicons name="send" size={24} color={isRecording ? 'black' : 'white'} />
           </TouchableOpacity>
         </View>
