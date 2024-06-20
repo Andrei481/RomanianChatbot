@@ -33,12 +33,12 @@ const styles = StyleSheet.create({
     },
     textBoxContainer: {
         flexDirection: 'row',
-        position: 'absolute',
-        bottom: 10, // Approximately 1 cm from the bottom (adjust if necessary)
         left: 0,
         right: 0,
         paddingHorizontal: 15,
+        paddingVertical: 10,
         alignItems: 'center',
+        backgroundColor: 'black',
     },
     textBox: {
         flex: 1,

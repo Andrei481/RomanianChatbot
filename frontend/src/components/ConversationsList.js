@@ -5,11 +5,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/HomeScreenStyle';
 import { useNavigation } from '@react-navigation/native';
 
-const SERVER_IP=process.env.SERVER_IP;
-const SERVER_PORT=process.env.SERVER_PORT;
+const SERVER_IP = process.env.SERVER_IP;
+const SERVER_PORT = process.env.SERVER_PORT;
 
 const ConversationsList = () => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
@@ -57,8 +57,7 @@ const ConversationsList = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.conversationItem} onPress={() => handleConversationPress(item._id)}>
-      <Text style={styles.conversationText}>ID: {item._id}</Text>
-      <Text style={styles.conversationText}>{item.title || 'No Title'}</Text>
+      <Text style={styles.conversationText}>{item.messages?.[0]?.text || 'Nu au fost puse întrebări încă.'}</Text>
     </TouchableOpacity>
   );
 

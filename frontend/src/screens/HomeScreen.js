@@ -134,7 +134,7 @@ const HomeScreen = () => {
       type: 'audio/wav',
     });
 
-    fetch('https://fat-turtle.loca.lt/upload', {
+    fetch(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/upload`, {
       method: 'POST',
       body: formData,
     })
@@ -158,7 +158,7 @@ const HomeScreen = () => {
       console.log(text);
       if(text != "")
       {
-        const response = await fetch('https://fat-turtle.loca.lt/send_textForTTS', {
+        const response = await fetch(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/send_textForTTS`, {
           method: 'POST',
           headers: {
             'Content-Type': 'text/plain',
@@ -181,7 +181,7 @@ const HomeScreen = () => {
   };
 
   const fetchAudio = async () => {
-    fetch('https://fat-turtle.loca.lt/get_audio')
+    fetch(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/get_audio`)
       .then(response => response.blob())
       .then(blob => {
         const reader = new FileReader();
@@ -270,7 +270,7 @@ const HomeScreen = () => {
         } else {
           Alert.alert('Error', response.data.message || 'Failed to get a response');
         }
-      } catch {
+      } catch(error) {
         if (error.response) {
           // Server responded with a status other than 200 range
           console.error('Server error response:', error.response.data);

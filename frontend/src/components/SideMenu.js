@@ -87,7 +87,7 @@ const SideMenu = ({ navigation, closeMenu }) => {
             style={styles.conversationItem}
             onPress={() => handleConversationPress(item._id)}
           >
-            <Text style={styles.conversationText}>{item._id}</Text>
+            <Text style={styles.conversationText}>{item.messages?.[0]?.text || 'Nu au fost puse întrebări încă.'}</Text>
           </TouchableOpacity>
         )}
       />
