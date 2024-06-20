@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 const SERVER_IP=process.env.SERVER_IP;
 const SERVER_PORT=process.env.SERVER_PORT;
@@ -9,6 +10,8 @@ const SERVER_PORT=process.env.SERVER_PORT;
 const SideMenu = ({ navigation, closeMenu }) => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -36,8 +39,11 @@ const SideMenu = ({ navigation, closeMenu }) => {
       }
     };
 
-    fetchConversations();
-  }, []);
+    if (isFocused) {
+      setLoading(true);
+      fetchConversations();
+    }
+  }, [isFocused]);
 
   if (loading) {
     return (
