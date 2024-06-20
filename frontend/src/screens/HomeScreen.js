@@ -18,6 +18,7 @@ const HomeScreen = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
   const [wait, setWait] = useState(false);
+  const [waitForResponse, setWaitForResponse] = useState(false);
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -211,6 +212,7 @@ const HomeScreen = () => {
 
   const handleSend = async () => {
     if (text.trim()) {
+      setWaitForResponse(true);
       const userMessage = { id: messages.length.toString(), text, isUser: true };
       // const answerMessage = { id: (messages.length + 1).toString(), text: 'This is an answer message', isUser: false };
 
@@ -234,6 +236,7 @@ const HomeScreen = () => {
         console.log("RESPONSE DATA: ", response.data);
   
         if (response.status === 200) {
+          setWaitForResponse(false);
           let answer = response.data;
           console.log('ANSWER:', answer);
 
@@ -269,8 +272,10 @@ const HomeScreen = () => {
           }
         } else {
           Alert.alert('Error', response.data.message || 'Failed to get a response');
+          setWaitForResponse(false);
         }
       } catch(error) {
+        setWaitForResponse(false);
         if (error.response) {
           // Server responded with a status other than 200 range
           console.error('Server error response:', error.response.data);
@@ -436,8 +441,8 @@ const HomeScreen = () => {
           <TouchableOpacity style={styles.sendButton} onPress={isRecording ? stopRecording : startRecording}>
             <Ionicons name="mic-outline" size={24} color={isRecording ? '#003BB8' : 'white'} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton} onPress={handleSend} disabled={isRecording}>
-            <Ionicons name="send" size={24} color={isRecording ? 'black' : 'white'} />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend} disabled = {isRecording || waitForResponse}>
+            <Ionicons name="send" size={24} color={(isRecording || waitForResponse) ? 'black' : 'white'} />
           </TouchableOpacity>
         </View>
         {isMenuVisible && (
