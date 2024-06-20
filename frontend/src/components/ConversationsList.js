@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../components/HomeScreenStyle';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 const SERVER_IP = process.env.SERVER_IP;
 const SERVER_PORT = process.env.SERVER_PORT;
@@ -11,6 +11,8 @@ const SERVER_PORT = process.env.SERVER_PORT;
 const ConversationsList = ({ refreshTrigger }) => {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
+
+  const isFocused = useIsFocused();
 
   const fetchConversations = async () => {
     try {
