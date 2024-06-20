@@ -56,6 +56,11 @@ const SideMenu = ({ navigation, closeMenu }) => {
     );
   }
 
+  const handleProfilePress = () => {
+    navigation.navigate('UserAccount');
+    closeMenu();
+  };
+
   const handleConversationPress = async (conversationId) => {
     try {
       await AsyncStorage.setItem('conversationId', conversationId);
@@ -69,19 +74,25 @@ const SideMenu = ({ navigation, closeMenu }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => { navigation.navigate('UserAccount'); closeMenu(); }}>
+      <TouchableOpacity style={styles.profileContainer} onPress={handleProfilePress}>
         {userData && userData.profilePicture ? (
           <Image
             source={{ uri: `data:image/png;base64,${userData.profilePicture}` }}
             style={styles.profilePicture}
           />
         ) : (
-          <Text style={styles.greeting}>Hello, {userData ? userData.name : 'User'}</Text>
+          <Image
+            source={require('../pictures/user.png')}
+            style={styles.profilePicture}
+          />
         )}
+        <Text style={styles.greeting}>
+          Hello, {userData ? userData.name : 'User'}
+        </Text>
       </TouchableOpacity>
       <FlatList
         data={conversations}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id.toString()}  // Ensure the key is a string
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.conversationItem}
@@ -100,21 +111,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+    paddingTop: 40, // Added padding to push content lower
   },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
   },
   greeting: {
     fontSize: 18,
-    marginVertical: 10,
   },
   conversationItem: {
     backgroundColor: '#000',
