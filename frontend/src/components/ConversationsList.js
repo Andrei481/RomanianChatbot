@@ -12,8 +12,6 @@ const ConversationsList = () => {
   const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
 
-  const isFocused = useIsFocused();
-
   useEffect(() => {
     const fetchConversations = async () => {
       try {
@@ -43,10 +41,8 @@ const ConversationsList = () => {
       }
     };
 
-    if (isFocused) {
-      fetchConversations();
-    }
-  }, [isFocused]);
+    fetchConversations();
+  }, []);
 
   const handleConversationPress = async (conversationId) => {
     try {
