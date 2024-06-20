@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Image, KeyboardAvoidingView, Platform, StyleSheet, Dimensions, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConversationsList from '../components/ConversationsList';
 import CustomButton from '../components/CustomButton';
 import styles from '../components/HomeScreenStyle'; // Adjust the path as necessary
 
-const SERVER_IP=process.env.SERVER_IP;
-const SERVER_PORT=process.env.SERVER_PORT;
+const SERVER_IP = process.env.SERVER_IP;
+const SERVER_PORT = process.env.SERVER_PORT;
 
 const ConversationsScreen = () => {
   const navigation = useNavigation();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const renderHeader = () => (
     <View style={styles.container}>
@@ -33,7 +34,7 @@ const ConversationsScreen = () => {
   const handleNewConversation = async () => {
     try {
       const token = await AsyncStorage.getItem('authToken');
-      console.log(token)
+      console.log(token);
       const userId = await AsyncStorage.getItem('userId');
 
       if (!token || !userId) {
@@ -42,7 +43,7 @@ const ConversationsScreen = () => {
       }
 
       const response = await axios.post(`http://${SERVER_IP}:${SERVER_PORT}/user/${userId}/newConversation`,
-        { messages: [] }, // Initially empty messages
+        { messages: [] },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ const ConversationsScreen = () => {
       );
 
       if (response.status === 200) {
-        console.log(response.data.conversation._id)
+        console.log(response.data.conversation._id);
         await AsyncStorage.setItem('conversationId', response.data.conversation._id);
         Alert.alert('Success', 'Conversation created successfully');
         navigation.navigate('HomeScreen');
@@ -66,6 +67,12 @@ const ConversationsScreen = () => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshTrigger(prev => prev + 1);
+    }, [])
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -73,7 +80,7 @@ const ConversationsScreen = () => {
     >
       <View style={{ flex: 1 }}>
         {renderHeader()}
-        <ConversationsList />
+        <ConversationsList refreshTrigger={refreshTrigger} />
       </View>
     </KeyboardAvoidingView>
   );

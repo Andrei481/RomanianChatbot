@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 const SERVER_IP = process.env.SERVER_IP;
 const SERVER_PORT = process.env.SERVER_PORT;
@@ -47,6 +48,40 @@ const SideMenu = ({ navigation, closeMenu }) => {
 
     fetchConversations();
   }, []);
+
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        Alert.alert('Error', 'No authentication token found');
+        return;
+      }
+
+      const response = await axios.delete(`http://${SERVER_IP}:${SERVER_PORT}/conversation/${conversationId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        Alert.alert('Success', 'Conversation deleted successfully');
+        // Remove the deleted conversation from the state
+        setConversations(conversations.filter(conv => conv._id !== conversationId));
+
+        const currentConversationId = await AsyncStorage.getItem('conversationId');
+        if (currentConversationId === conversationId) {
+          await AsyncStorage.removeItem('conversationId');
+          navigation.navigate('Conversations'); // Redirect to 'Conversations' screen
+        }
+      } else {
+        Alert.alert('Error', response.data.message || 'Failed to delete conversation');
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      Alert.alert('Error', error.response?.data?.message || 'An error occurred while deleting the conversation');
+    }
+  };
 
   if (loading) {
     return (
@@ -94,12 +129,17 @@ const SideMenu = ({ navigation, closeMenu }) => {
         data={conversations}
         keyExtractor={(item) => item._id.toString()}  // Ensure the key is a string
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.conversationItem}
-            onPress={() => handleConversationPress(item._id)}
-          >
-            <Text style={styles.conversationText}>{item.messages?.[0]?.text || 'Nu au fost puse întrebări încă.'}</Text>
-          </TouchableOpacity>
+          <View style={styles.conversationItemContainer}>
+            <TouchableOpacity
+              style={styles.conversationItem}
+              onPress={() => handleConversationPress(item._id)}
+            >
+              <Text style={styles.conversationText}>{item.messages?.[0]?.text || 'Nu au fost puse întrebări încă.'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteConversation(item._id)}>
+              <Ionicons name="trash" size={24} color="red" />
+            </TouchableOpacity>
+          </View>
         )}
       />
     </View>
@@ -132,11 +172,17 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 18,
   },
-  conversationItem: {
+  conversationItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#000',
     padding: 10,
     marginVertical: 5,
     borderRadius: 10,
+  },
+  conversationItem: {
+    flex: 1,
   },
   conversationText: {
     color: 'white',
