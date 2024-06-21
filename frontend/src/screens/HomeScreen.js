@@ -388,23 +388,33 @@ const HomeScreen = () => {
 
   const renderMessageItem = ({ item }) => {
     const playButton = (
-      <TouchableOpacity style={item.isUser ? styles.userButton : styles.responseButton} onPress={() => sendText(item.text)} disabled={wait}>
+      <TouchableOpacity
+        style={item.isUser ? styles.userButton : styles.responseButton}
+        onPress={() => sendText(item.text)}
+        disabled={wait}
+      >
         <Ionicons name="play-circle" size={24} color={wait ? "black" : "white"} />
       </TouchableOpacity>
     );
-  
+
+    const lines = item.text.split('\\n');
     return (
       <View
-        key={item.id} 
+        key={item.id}
         style={[
           styles.messageContainer,
           item.isUser ? styles.userMessage : styles.answerMessage,
           { flexDirection: item.isUser ? 'row' : 'row-reverse' }
         ]}
       >
-
         {playButton}
-        <Text style={styles.message}>{item.text}</Text>
+        <View>
+          {lines.map((line, index) => (
+            <Text key={index}>
+              {line}
+            </Text>
+          ))}
+        </View>
       </View>
     );
   };

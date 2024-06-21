@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Image, Alert } from 'react-native';
-import CustomInput from '../components/CustomInput';
+import CustomInputForgotPassword from '../components/CustomInputForgotPassword';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
@@ -50,7 +50,7 @@ const ForgotPasswordScreen = () => {
                     />
                 <View style={styles.innerContainer}>
                     <Text style={styles.footerText}>What's your email or username?</Text>
-                    <CustomInput
+                    <CustomInputForgotPassword
                         placeholder="Enter Email or Username"
                         value={identifier}
                         setValue={setIdentifier}
