@@ -229,7 +229,7 @@ const HomeScreen = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 10000, // Set a timeout for the request
+          timeout: 20000, // Set a timeout for the request
         });
   
         console.log('Response received:', response);
