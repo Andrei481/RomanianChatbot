@@ -21,10 +21,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.andrei481.RomanianChatbot"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "03833d28-142b-402f-80f8-e4ef0a8492ff"
+      }
+    },
+    "plugins":[ [ "expo-build-properties", { "android": { "usesCleartextTraffic": true } } ] ]
   }
 }
