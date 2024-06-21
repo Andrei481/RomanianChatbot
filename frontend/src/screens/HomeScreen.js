@@ -134,22 +134,28 @@ const HomeScreen = () => {
       name: 'audio.wav',
       type: 'audio/wav',
     });
-
-    fetch(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/upload`, {
-      method: 'POST',
-      body: formData,
-    })
-      .then((response) => response.text())
-      .then((result) => {
+  
+    const upload = async (retries = 3) => {
+      try {
+        const response = await fetch(`http://${LLM_SERVER_IP}:${LLM_SERVER_PORT}/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        const result = await response.text();
         console.log(result);
-        if(result != 404)
-        {
+        if(result != 404) {
           setText(result.startsWith('"') && result.endsWith('"') ? result.slice(1, -1) : result);
         }
-      })
-      .catch((error) => {
-        console.error('Error uploading audio', error);
-      });
+      } catch (error) {
+        if (retries > 0) {
+          await upload(retries - 1);
+        } else {
+          console.error('Error uploading audio', error);
+        }
+      }
+    };
+  
+    await upload();
   };
 
   const sendText = async (text) => {
