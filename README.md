@@ -1,11 +1,6 @@
-# Chatbots for Romanian Academic Institutions - Resources
+# Fine-Tuning and Integrating Multimodal AI for a Romanian University Assistant
 
-This repository contains resources related to the paper "Chatbots for Romanian Academic Institutions" [cite: RomanianChatbot.pdf]. It includes links to the fine-tuned models, datasets, and the code for both the LLM fine-tuning/testing and the full chatbot mobile application.
-
-## Repositories
-
-* **Romanian LLM Resources (Fine-tuning, Datasets, etc.):** [https://github.com/Andrei481/licenta](https://github.com/Andrei481/licenta)
-* **Romanian Chatbot Mobile Application:** [https://github.com/Andrei481/RomanianChatbot](https://github.com/Andrei481/RomanianChatbot)
+This repository contains resources related to the paper [*Fine-Tuning and Integrating Multimodal AI for a Romanian University Assistant*](TODO: ADD LINK HERE). It includes links to the fine-tuned models, datasets, and the code for both the LLM fine-tuning/testing and the full chatbot mobile application.
 
 ## Models and Datasets
 
