@@ -6,12 +6,14 @@ This repository contains resources related to the paper [*Fine-Tuning and Integr
 
 The fine-tuned models and datasets used in this project are available on Hugging Face:
 
-* **Hugging Face Profile:** [https://huggingface.co/Andrei481](https://huggingface.co/Andrei481)
+* **Hugging Face Profiles:** [https://huggingface.co/Andrei481](https://huggingface.co/Andrei481), [https://huggingface.co/VladS159](https://huggingface.co/VladS159)
 * **Models include:**
     * `Andrei481/Llama-2-13b-chat-open-instruct-v1-ro`
     * `Andrei481/llama-3-8b-unsloth-corpus-open-instruct-ro-16b`
     * `Andrei481/llama-3-8b-instruct-unsloth-open-instruct-ro-16b`
     * `Andrei481/Mistral-7B-Instruct-v0.2-open-instruct-ro`
+    * `VladS159/Whisper_medium_ro_VladS_10000_steps_multi_gpu_07_03_2024`
+    * `VladS159/Whisper_small_ro_VladS_6000_steps_multi-gpu_28_05_2024`
 
 
 ## Usage Instructions
